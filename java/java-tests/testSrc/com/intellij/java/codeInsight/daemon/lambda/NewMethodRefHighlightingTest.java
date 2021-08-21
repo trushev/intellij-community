@@ -86,6 +86,8 @@ public class NewMethodRefHighlightingTest extends LightDaemonAnalyzerTestCase {
       .forEach(info -> Assert.assertEquals("<html>Reference to 'm' is ambiguous, both 'm(Test, String)' and 'm(String)' match</html>",
                                            info.getToolTip()));
   }
+  public void testStaticNonStaticWithVarargsReferenceTypeAmbiguity() { doTest(); }
+  public void testStaticWithVarargsNonStaticReferenceTypeAmbiguity() { doTest(); }
   public void testSuperClassPotentiallyApplicableMembers() { doTest(); }
   public void testExactMethodReferencePertinentToApplicabilityCheck() { doTest(); }
   public void testAmbiguityVarargs() { doTest(); }
