@@ -139,7 +139,7 @@ public class MethodReferenceResolver implements ResolveCache.PolyVariantContextR
                   PsiType[] argTypes = signature.getParameterTypes();
                   boolean hasReceiver = PsiMethodReferenceUtil.isSecondSearchPossible(argTypes, qualifierResolveResult, reference);
 
-                  return MethodReferenceConflictResolver.isApplicableByFirstSearch(this, argTypes, hasReceiver, reference, interfaceMethod.isVarArgs(), interfaceMethod) != null;
+                  return MethodReferenceConflictResolver.isApplicableByFirstSearch(this, argTypes, hasReceiver, reference, interfaceMethod.isVarArgs(), interfaceMethod, null) != null;
                 }
               };
             }
@@ -235,13 +235,17 @@ public class MethodReferenceResolver implements ResolveCache.PolyVariantContextR
 
       List<CandidateInfo> firstCandidates = new ArrayList<>();
       List<CandidateInfo> secondCandidates = new ArrayList<>();
+      List<CandidateInfo> errorCandidates = new ArrayList<>();
 
       for (CandidateInfo conflict : conflicts) {
         if (!(conflict instanceof MethodCandidateInfo)) continue;
-        Boolean applicableByFirstSearch = isApplicableByFirstSearch(conflict, argTypes, hasReceiver, myReferenceExpression, myFunctionalMethodVarArgs, myInterfaceMethod);
+        Boolean applicableByFirstSearch = isApplicableByFirstSearch(conflict, argTypes, hasReceiver, myReferenceExpression, myFunctionalMethodVarArgs, myInterfaceMethod, errorCandidates);
         if (applicableByFirstSearch != null) {
           (applicableByFirstSearch ? firstCandidates : secondCandidates).add(conflict);
         }
+      }
+      if (firstCandidates.isEmpty() && secondCandidates.isEmpty() && errorCandidates.size() == 1) {
+        return errorCandidates.get(0);
       }
 
       if (myQualifierResolveResult.isReferenceTypeQualified() && myReferenceExpression.getReferenceNameElement() instanceof PsiIdentifier) {
@@ -297,12 +301,18 @@ public class MethodReferenceResolver implements ResolveCache.PolyVariantContextR
                                                      boolean hasReceiver,
                                                      @NotNull PsiMethodReferenceExpression referenceExpression,
                                                      boolean functionalMethodVarArgs,
-                                                     PsiMethod interfaceMethod) {
+                                                     PsiMethod interfaceMethod,
+                                                     List<CandidateInfo> errorCandidates) {
 
       PsiMethod psiMethod = ((MethodCandidateInfo)conflict).getElement();
 
       PsiSubstitutor substitutor = ((MethodCandidateInfo)conflict).getSubstitutor(false);
-      if (((MethodCandidateInfo)conflict).getInferenceErrorMessage() != null) return null;
+      if (((MethodCandidateInfo)conflict).getInferenceErrorMessage() != null) {
+        if (errorCandidates != null) {
+          errorCandidates.add(conflict);
+        }
+        return null;
+      }
       PsiType[] parameterTypes = psiMethod.getSignature(substitutor).getParameterTypes();
 
       boolean varargs = ((MethodCandidateInfo)conflict).isVarargs();

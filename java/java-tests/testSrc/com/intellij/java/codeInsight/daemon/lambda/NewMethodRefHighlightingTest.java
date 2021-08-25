@@ -74,6 +74,7 @@ public class NewMethodRefHighlightingTest extends LightDaemonAnalyzerTestCase {
   }
   public void testStaticWithVarargsNonStaticReferenceTypeAmbiguity() { doTest(); }
   public void testStaticNonStaticWithVarargsReferenceTypeAmbiguity() { doTest(); }
+  public void testConfusingError() { doTest(); }
   public void testSuperClassPotentiallyApplicableMembers() { doTest(); }
   public void testExactMethodReferencePertinentToApplicabilityCheck() { doTest(); }
   public void testAmbiguityVarargs() { doTest(); }
